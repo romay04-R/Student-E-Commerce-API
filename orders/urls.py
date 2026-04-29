@@ -3,6 +3,7 @@ from .views import (
     OrderViewSet, create_order, PurchaseOrdersView, SalesOrdersView,
     get_order_details, accept_order, reject_order, complete_order
 )
+from .payment_views import initialize_payment, verify_payment, paystack_webhook
 from rest_framework.routers import SimpleRouter
 
 router = SimpleRouter()
@@ -17,4 +18,8 @@ urlpatterns = [
     path('<int:orderId>/accept/', accept_order, name='accept-order'),
     path('<int:orderId>/reject/', reject_order, name='reject-order'),
     path('<int:orderId>/complete/', complete_order, name='complete-order'),
+    # Payment URLs
+    path('payment/initialize/', initialize_payment, name='initialize-payment'),
+    path('payment/verify/', verify_payment, name='verify-payment'),
+    path('payment/webhook/', paystack_webhook, name='paystack-webhook'),
 ]

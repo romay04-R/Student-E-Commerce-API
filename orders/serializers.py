@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Order, OrderItem
+from .models import Order, OrderItem, Payment
 from products.serializers import ProductSerializer
 
 
@@ -12,11 +12,19 @@ class OrderItemSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class PaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = '__all__'
+        read_only_fields = ['order', 'amount', 'paystack_reference', 'status', 'paid_at']
+
+
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
     buyer_username = serializers.CharField(source='buyer.username', read_only=True)
     seller_username = serializers.CharField(source='seller.username', read_only=True)
     product = serializers.SerializerMethodField()
+    payment = PaymentSerializer(read_only=True)
     
     class Meta:
         model = Order
@@ -69,3 +77,14 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             OrderItem.objects.create(order=order, **item_data)
         
         return order
+
+
+class PaymentInitializeSerializer(serializers.Serializer):
+    order_id = serializers.IntegerField()
+    email = serializers.EmailField()
+    amount = serializers.DecimalField(max_digits=10, decimal_places=2)
+    callback_url = serializers.URLField(required=False)
+
+
+class PaymentVerifySerializer(serializers.Serializer):
+    reference = serializers.CharField()

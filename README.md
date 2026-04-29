@@ -1,15 +1,18 @@
 # Student E-Commerce API
 
-A Django REST Framework based e-commerce API for student projects.
+A Django REST Framework based e-commerce API for student projects with Paystack payment integration.
 
 ## Features
 
 - User authentication and registration
 - Product management with categories
 - Order management system
+- **Paystack payment integration**
 - Product reviews and ratings
+- Real-time messaging system
 - Admin panel for management
 - RESTful API endpoints
+- Notification system
 
 ## Setup Instructions
 
@@ -26,7 +29,17 @@ Create a `.env` file in the project root:
 ```
 SECRET_KEY=your-secret-key-here
 DEBUG=True
+
+# Paystack Payment Settings
+PAYSTACK_PUBLIC_KEY=your_paystack_public_key
+PAYSTACK_SECRET_KEY=your_paystack_secret_key
 ```
+
+**Getting Paystack Keys:**
+1. Sign up at [Paystack](https://paystack.co)
+2. Go to Settings → API Keys
+3. Copy your Public and Secret keys
+4. Add them to your `.env` file
 
 ### 3. Database Setup
 
@@ -66,6 +79,21 @@ python manage.py runserver
 - `POST /api/orders/create_order/` - Create new order (auth required)
 - `POST /api/orders/{id}/cancel/` - Cancel order (auth required)
 
+### Payments (Paystack Integration)
+- `POST /api/orders/payment/initialize/` - Initialize payment (auth required)
+- `GET /api/orders/payment/verify/?reference=xxx` - Verify payment (auth required)
+- `POST /api/orders/payment/webhook/` - Paystack webhook endpoint (no auth)
+
+### Messaging
+- `GET /api/messaging/conversations/` - List user conversations (auth required)
+- `POST /api/messaging/conversations/` - Create new conversation (auth required)
+- `GET /api/messaging/conversations/{id}/messages/` - Get conversation messages (auth required)
+- `POST /api/messaging/conversations/{id}/messages/` - Send message (auth required)
+
+### Notifications
+- `GET /api/notifications/` - List user notifications (auth required)
+- `PUT /api/notifications/{id}/mark-read/` - Mark notification as read (auth required)
+
 ### Admin Panel
 Access at: `http://127.0.0.1:8000/admin/`
 
@@ -93,6 +121,25 @@ curl -X POST http://127.0.0.1:8000/api/orders/create_order/ \
   -d '{"items": [{"product_id": 1, "quantity": 2}]}'
 ```
 
+### Initialize Payment
+```bash
+curl -X POST http://127.0.0.1:8000/api/orders/payment/initialize/ \
+  -H "Authorization: Token your-token-here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "order_id": 1,
+    "email": "buyer@example.com",
+    "amount": 2500.00,
+    "callback_url": "http://yourapp.com/payment/callback"
+  }'
+```
+
+### Verify Payment
+```bash
+curl -X GET "http://127.0.0.1:8000/api/orders/payment/verify/?reference=pay_1234567890" \
+  -H "Authorization: Token your-token-here"
+```
+
 ## Project Structure
 
 ```
@@ -109,12 +156,49 @@ Student-E-Commerce-API/
 |   |-- views.py        # Authentication views
 |   |-- serializers.py  # User serializers
 |-- orders/             # Orders app
-|   |-- models.py       # Order and OrderItem models
+|   |-- models.py       # Order, OrderItem, and Payment models
 |   |-- views.py        # Order views
-|   |-- serializers.py  # Order serializers
+|   |-- payment_views.py # Payment views (Paystack integration)
+|   |-- serializers.py  # Order and Payment serializers
+|   |-- urls.py         # Order and payment URLs
 |-- manage.py           # Django management script
 |-- requirements.txt    # Python dependencies
 ```
+
+## Payment Flow
+
+The payment system follows this workflow:
+
+1. **Order Creation**: Buyer creates an order with products
+2. **Payment Initialization**: Buyer initiates payment via Paystack
+3. **Payment Processing**: Buyer completes payment on Paystack's secure page
+4. **Payment Verification**: System verifies payment status
+5. **Order Confirmation**: Order auto-accepts on successful payment
+6. **Notifications**: Both buyer and seller receive notifications
+
+### Payment States
+
+- **Pending**: Payment initialized but not completed
+- **Processing**: Payment is being processed
+- **Success**: Payment completed successfully
+- **Failed**: Payment failed or was cancelled
+- **Reversed**: Payment was reversed (refund)
+
+### Webhook Configuration
+
+To receive real-time payment updates:
+
+1. Go to your Paystack dashboard
+2. Navigate to Settings → Webhooks
+3. Add your webhook URL: `https://yourdomain.com/api/orders/payment/webhook/`
+4. Select events: `charge.success` and `charge.failed`
+
+### Security Notes
+
+- Always verify payment status before accepting orders
+- Use HTTPS in production
+- Keep your Paystack secret keys secure
+- Implement proper error handling for failed payments
 
 ## Contributing
 
