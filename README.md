@@ -100,10 +100,19 @@ Access at: `http://127.0.0.1:8000/admin/`
 ## Usage Examples
 
 ### Register User
+
+**Buyer Registration:**
 ```bash
 curl -X POST http://127.0.0.1:8000/api/auth/register/ \
   -H "Content-Type: application/json" \
-  -d '{"username": "student", "email": "student@example.com", "password": "password123", "first_name": "John", "last_name": "Doe"}'
+  -d '{"username": "student", "email": "student@example.com", "password": "Password123", "password2": "Password123", "first_name": "John", "last_name": "Doe", "role": "buyer"}'
+```
+
+**Seller Registration:**
+```bash
+curl -X POST http://127.0.0.1:8000/api/auth/register/ \
+  -H "Content-Type: application/json" \
+  -d '{"username": "seller", "email": "seller@example.com", "password": "Password123", "password2": "Password123", "first_name": "Jane", "last_name": "Smith", "role": "seller"}'
 ```
 
 ### Login

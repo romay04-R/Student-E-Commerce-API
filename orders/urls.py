@@ -11,7 +11,6 @@ router.register(r'', OrderViewSet, basename='order')
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('create/', create_order, name='create-order'),
     path('purchases/', PurchaseOrdersView.as_view(), name='purchase-orders'),
     path('sales/', SalesOrdersView.as_view(), name='sales-orders'),
     path('details/<int:orderId>/', get_order_details, name='order-details'),

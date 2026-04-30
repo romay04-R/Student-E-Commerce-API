@@ -10,10 +10,11 @@ class UserSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(write_only=True, min_length=8)
     access = serializers.CharField(read_only=True)
     refresh = serializers.CharField(read_only=True)
+    role = serializers.ChoiceField(choices=UserProfile.ROLE_CHOICES, default='buyer')
     
     class Meta:
         model = User
-        fields = ('username', 'email', 'password', 'password2', 'first_name', 'last_name', 'access', 'refresh')
+        fields = ('username', 'email', 'password', 'password2', 'first_name', 'last_name', 'role', 'access', 'refresh')
         extra_kwargs = {
             'password': {'write_only': True},
             'email': {'required': True},
@@ -52,8 +53,10 @@ class UserSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         validated_data.pop('password2')  # Remove password2 as it's not a User model field
+        role = validated_data.pop('role', 'buyer')  # Extract role from validated_data
+        
         user = User.objects.create_user(**validated_data)
-        UserProfile.objects.create(user=user)
+        UserProfile.objects.create(user=user, role=role)
         
         # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
