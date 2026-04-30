@@ -6,16 +6,32 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q
 from .models import Category, Product, ProductReview, ProductImage
 from .serializers import (
-    CategorySerializer, ProductSerializer, ProductCreateSerializer, 
+    CategorySerializer, CategoryBulkCreateSerializer, ProductSerializer, ProductCreateSerializer, 
     ProductReviewSerializer, ProductReviewUpdateSerializer, ProductImageSerializer
 )
 from users.permissions import IsSeller, IsBuyer, IsOwnerOrReadOnly
 
 
-class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
+class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [AllowAny]
+    
+    def get_serializer_class(self):
+        if self.action == 'bulk_create':
+            return CategoryBulkCreateSerializer
+        return CategorySerializer
+    
+    @action(detail=False, methods=['post'])
+    def bulk_create(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            categories = serializer.save()
+            return Response(
+                CategorySerializer(categories, many=True).data,
+                status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ProductViewSet(viewsets.ModelViewSet):

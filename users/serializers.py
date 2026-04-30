@@ -21,6 +21,13 @@ class UserSerializer(serializers.ModelSerializer):
             'username': {'required': True, 'min_length': 3}
         }
     
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # Add role from user profile to response
+        if hasattr(instance, 'userprofile'):
+            data['role'] = instance.userprofile.role
+        return data
+    
     def validate_username(self, value):
         # Username validation: alphanumeric + underscores, min 3 chars
         if not value.replace('_', '').isalnum():
@@ -74,6 +81,7 @@ class UserSerializer(serializers.ModelSerializer):
         if hasattr(user, 'userprofile'):
             profile = user.userprofile
             refresh['profile_id'] = str(profile.id)
+            refresh['role'] = profile.role
             refresh['is_seller'] = profile.is_seller
             refresh['average_rating'] = str(profile.average_rating)
             refresh['total_sales'] = str(profile.total_sales)

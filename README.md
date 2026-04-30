@@ -70,7 +70,10 @@ python manage.py runserver
 ### Products
 - `GET /api/products/` - List all products
 - `GET /api/products/{id}/` - Get product details
+- `POST /api/products/` - Create product (seller auth required)
 - `GET /api/products/categories/` - List categories
+- `POST /api/products/categories/` - Create single category
+- `POST /api/products/categories/bulk_create/` - Create multiple categories
 - `POST /api/products/{id}/add_review/` - Add product review (auth required)
 - `GET /api/products/{id}/reviews/` - Get product reviews
 
@@ -122,9 +125,45 @@ curl -X POST http://127.0.0.1:8000/api/auth/login/ \
   -d '{"username": "student", "password": "password123"}'
 ```
 
+### Create Single Category
+```bash
+curl -X POST http://127.0.0.1:8000/api/products/categories/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Electronics",
+    "description": "Electronic devices and gadgets"
+  }'
+```
+
+### Create Multiple Categories
+```bash
+curl -X POST http://127.0.0.1:8000/api/products/categories/bulk_create/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "categories": [
+      {
+        "name": "Electronics",
+        "description": "Electronic devices and gadgets"
+      },
+      {
+        "name": "Books",
+        "description": "Textbooks and novels"
+      },
+      {
+        "name": "Clothing",
+        "description": "Fashion and apparel"
+      },
+      {
+        "name": "Sports Equipment",
+        "description": "Sports and fitness gear"
+      }
+    ]
+  }'
+```
+
 ### Create Order
 ```bash
-curl -X POST http://127.0.0.1:8000/api/orders/create_order/ \
+curl -X POST http://127.0.0.1:8000/api/orders/ \
   -H "Authorization: Token your-token-here" \
   -H "Content-Type: application/json" \
   -d '{"items": [{"product_id": 1, "quantity": 2}]}'
